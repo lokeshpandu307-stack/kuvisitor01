@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kaveri University Smart Visitor Management System</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+  <section id="loginPage" class="login-page">
+    <div class="login-bg"></div>
+    <div class="login-card">
+      <img src="assets/kaveri-logo.png" class="logo" alt="Kaveri University" />
+      <h1>Smart Visitor Management System</h1>
+      <p>QR pass • Campus desk scan • ID issue • Dashboard reports</p>
+      <div class="demo-box">
+        <b>Demo Login</b><br>
+        Admin: <code>admin@kaveri.edu</code> / <code>admin123</code><br>
+        Desk: <code>desk@kaveri.edu</code> / <code>desk123</code>
+      </div>
+      <label>Email</label>
+      <input id="loginEmail" value="admin@kaveri.edu" placeholder="Enter email" />
+      <label>Password</label>
+      <input id="loginPassword" value="admin123" type="password" placeholder="Enter password" />
+      <button class="primary full" onclick="login()">Login</button>
+    </div>
+  </section>
+
+  <main id="app" class="app hidden">
+    <aside class="sidebar">
+      <img src="assets/kaveri-logo.png" class="side-logo" alt="Kaveri" />
+      <p class="system-name">Visitor System</p>
+      <button class="nav active" data-page="dashboard" onclick="showPage('dashboard')">Dashboard</button>
+      <button class="nav" data-page="register" onclick="showPage('register')">Register Visitor</button>
+      <button class="nav" data-page="approvals" onclick="showPage('approvals')">Approvals</button>
+      <button class="nav" data-page="scan" onclick="showPage('scan')">QR Scan</button>
+      <button class="nav" data-page="visitors" onclick="showPage('visitors')">Visitor Records</button>
+      <button class="nav" data-page="reports" onclick="showPage('reports')">Reports</button>
+      <button class="nav" data-page="settings" onclick="showPage('settings')">Settings</button>
+      <div class="side-footer">
+        <span id="roleBadge"></span>
+        <button class="ghost full" onclick="logout()">Logout</button>
+      </div>
+    </aside>
+
+    <section class="content">
+      <header class="topbar">
+        <div>
+          <h2 id="pageTitle">Dashboard</h2>
+          <p id="todayText"></p>
+        </div>
+        <div class="top-actions">
+          <button class="ghost" onclick="seedData(true)">Reset Demo Data</button>
+          <button class="primary" onclick="showPage('register')">+ New Visitor</button>
+        </div>
+      </header>
+
+      <section id="dashboard" class="page">
+        <div class="hero">
+          <div>
+            <h1>Kaveri University Visitor Control</h1>
+            <p>Live view of visitors, entry/exit status, purpose analytics and reports.</p>
+          </div>
+        </div>
+        <div class="cards">
+          <div class="card"><span>Total Today</span><b id="kTotal">0</b></div>
+          <div class="card green"><span>Currently Inside</span><b id="kInside">0</b></div>
+          <div class="card blue"><span>Exited</span><b id="kExited">0</b></div>
+          <div class="card yellow"><span>Pending</span><b id="kPending">0</b></div>
+          <div class="card red"><span>Invalid Attempts</span><b id="kInvalid">0</b></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>Live Visitors</h3>
+            <div id="liveTable"></div>
+          </div>
+          <div class="panel">
+            <h3>Purpose Analytics</h3>
+            <div id="purposeChart" class="bars"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="register" class="page hidden">
+        <div class="panel form-panel">
+          <h3>Visitor Registration</h3>
+          <p class="muted">Visitor self-registration or Campus Desk/Admin registration.</p>
+          <div id="duplicateAlert" class="alert hidden"></div>
+          <div class="form-grid">
+            <div><label>Full Name</label><input id="vName" placeholder="Ramesh Kumar" /></div>
+            <div><label>Phone Number</label><input id="vPhone" placeholder="9876543210" onblur="checkDuplicate()" /></div>
+            <div><label>Email Address</label><input id="vEmail" placeholder="visitor@email.com" onblur="checkDuplicate()" /></div>
+            <div><label>Organization</label><input id="vOrg" placeholder="Company / Institution" /></div>
+            <div><label>Purpose</label><select id="vPurpose" onchange="purposeFields()"></select></div>
+            <div><label>Visit Date</label><input id="vDate" type="date" /></div>
+            <div><label>From Time</label><input id="vFrom" type="time" /></div>
+            <div><label>To Time</label><input id="vTo" type="time" /></div>
+          </div>
+          <div id="dynamicFields" class="dynamic"></div>
+          <div class="actions">
+            <button class="ghost" onclick="clearForm()">Clear</button>
+            <button class="primary" onclick="registerVisitor()">Save & Send for Approval</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="approvals" class="page hidden">
+        <div class="panel">
+          <h3>Approval Queue</h3>
+          <p class="muted">High-Level Meeting is Admin-only approval. Other visits can be approved by Admin or Campus Desk.</p>
+          <div id="approvalList"></div>
+        </div>
+      </section>
+
+      <section id="scan" class="page hidden">
+        <div class="grid-2">
+          <div class="panel scan-panel">
+            <h3>QR Scan / Manual Token Check</h3>
+            <p class="muted">For demo, paste Visitor ID or secure token from generated pass.</p>
+            <input id="scanInput" placeholder="KV-2026-00123 or secure token" />
+            <button class="primary full" onclick="scanPass()">Scan Pass</button>
+            <div id="scanResult"></div>
+          </div>
+          <div class="panel">
+            <h3>Pass Preview</h3>
+            <div id="passPreview" class="pass-placeholder">Select any approved visitor from records to preview pass.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="visitors" class="page hidden">
+        <div class="panel">
+          <div class="table-head">
+            <h3>All Visitor Records</h3>
+            <input id="searchBox" oninput="renderVisitors()" placeholder="Search name, phone, email, purpose" />
+          </div>
+          <div id="visitorTable"></div>
+        </div>
+      </section>
+
+      <section id="reports" class="page hidden">
+        <div class="panel">
+          <h3>Daily Report Auto Download</h3>
+          <p class="muted">Export visitor records as CSV. Open in Excel directly.</p>
+          <button class="primary" onclick="downloadCSV()">Download Today Report CSV</button>
+          <button class="ghost" onclick="printReport()">Print / Save as PDF</button>
+          <div id="reportSummary" class="report-summary"></div>
+        </div>
+      </section>
+
+      <section id="settings" class="page hidden">
+        <div class="panel">
+          <h3>Project Setup</h3>
+          <div class="setup-list">
+            <p><b>System:</b> Kaveri University Smart Visitor Management System</p>
+            <p><b>Mode:</b> Static frontend + localStorage database</p>
+            <p><b>Next upgrade:</b> Firebase database, WhatsApp Business API, real camera QR scan.</p>
+            <p><b>Current demo:</b> Fully works offline in browser.</p>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
